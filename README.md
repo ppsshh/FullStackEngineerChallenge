@@ -1,6 +1,8 @@
 # Full Stack Developer Challenge
 This is an interview challengs. Please feel free to fork. Pull Requests will be ignored.
 
+![Screenshot](https://github.com/ppsshh/FullStackEngineerChallenge/blob/master/screenshot.png?raw=true)
+
 ## Requirements
 Design a web application that allows employees to submit feedback toward each other's performance review.
 
