@@ -21,8 +21,10 @@ post :review do
   protect!
   payload = parametrize(params)
   review = Review.create(content: payload[:message], user: current_user)
-  Assignment.create(review: review, user: current_user, fulfilled: true)
-  return review.to_hash.to_json
+  assignment = Assignment.create(review: review, user: current_user, fulfilled: true)
+  return review.to_hash.merge(
+    current_user.admin? ? {assignments: assignments_hash([assignment], true)} : {}
+  ).to_json
 end
 
 post :feedback do

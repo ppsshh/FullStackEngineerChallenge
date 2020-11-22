@@ -64,6 +64,7 @@ javascript:
         .then(body => {
           this.currentReview = body;
           this.inputText = '';
+          this.reviews.unshift(body);
         })
       },
       submitFeedback() {

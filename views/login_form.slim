@@ -1,3 +1,7 @@
-form method="POST" action=path_to(:session)
-  input name="login" placeholder="Login"
-  input type="submit" value="Log in"
+div style="margin: 1em"
+  p Write any username to login or create new user and login.
+  p If username contains 'admin' word, you'll login as admin.
+
+  form method="POST" action=path_to(:session)
+    input name="login" placeholder="Username"
+    input type="submit" value="Log in"
