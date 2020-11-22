@@ -1,7 +1,7 @@
 paths session: '/session'
 
 post :session do
-  u = User.find_or_create_by(login: params[:login])
+  u = User.find_or_create_by(login: params[:login].downcase.strip)
   session[:user_id] = u.id
   redirect path_to(:index)
 end

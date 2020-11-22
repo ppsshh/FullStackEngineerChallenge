@@ -8,7 +8,7 @@ div id="app"
         div.plus-sign +
         div class="label" Create performance review
       div.reviews-list
-        div class="review" v-for="(review, idx) in reviews" @click="openReview(idx)"
+        div class="review" v-for="(review, idx) in reviews" @click="openReview(idx)" :class="currentReview && currentReview.id == review.id ? 'review-selected' : null"
           div.username = '{{review.user}}'
           div.content = '{{review.content}}'
     div.center-panel
@@ -31,8 +31,8 @@ div id="app"
       template v-if="currentReview"
         h2 Participants
         div class="participant" v-for="assignment in currentReview.assignments"
-          input type="checkbox" :checked="assignment.assigned ? true : false"
-          = "{{assignment.user}}"
+          input type="checkbox" :checked="assignment.assigned ? true : false" @click="changeAssignment($event, assignment.user_id, assignment.assigned)" :disabled="!isAdmin"
+          = "{{assignment.user}} {{assignment.fulfilled ? '\u2714\uFE0F' : '\u274C'}}"
 
 
 javascript:
@@ -94,5 +94,15 @@ javascript:
             this.currentReview.assignments = body;
           })
       },
+      changeAssignment(e, user_id, assigned) {
+        e.preventDefault();
+        fetch('/assignments', {
+          method: 'POST',
+          body: JSON.stringify({review_id: this.currentReview.id, user_id: user_id, assigned: !assigned})
+        }).then(response => response.json())
+        .then(body => {
+          this.currentReview.assignments = body;
+        })
+      }
     }
   })

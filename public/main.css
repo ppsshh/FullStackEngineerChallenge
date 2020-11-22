@@ -1,7 +1,7 @@
 body {
   font-family: 'Fira Sans', sans-serif;
   margin: 0;
-  padding: .4em .5em .6em .5em;
+  padding: 0;
 }
 a {
   color: #07f;
@@ -13,11 +13,10 @@ a:hover {
 
 
 .panel {
-  height: calc(100vh - 1em);
+  height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
   border: none;
-  box-shadow: 0 0 0 1px rgba(20,20,31,0.05),0 1px 3px 0 rgba(20,20,31,0.15);
   color: #363642;
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
@@ -107,7 +106,10 @@ a:hover {
 }
 .review:hover {
   cursor: pointer;
-  background: #57a4d2;
+  background: #7773;
+}
+.review-selected {
+  background: #57a4d2 !important;
   color: #e7f2f7;
 }
 

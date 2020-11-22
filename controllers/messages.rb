@@ -30,26 +30,52 @@ post :feedback do
   payload = parametrize(params)
   halt(403, "Access denied") unless Assignment.find_by(user: current_user, review_id: payload[:review_id]) || current_user.admin?
   feedback = Feedback.create(user: current_user, review_id: payload[:review_id], content: payload[:message])
+  assignment = Assignment.find_by(review_id: payload[:review_id], user: current_user)
+  assignment.update(fulfilled: true) if assignment.present? && assignment.fulfilled == false
   return feedback.to_hash.to_json
+end
+
+def assignments_hash(assignments, is_admin)
+  if is_admin
+    User.all.order(login: :asc).map do |u|
+      assignment = assignments.find{|a| a.user_id == u.id}
+      {
+        user_id: u.id,
+        user: u.login,
+        assigned: assignment.present?,
+        fulfilled: assignment.try(:fulfilled),
+      }
+    end
+  else
+    assignments.map do |a|
+      {
+        user_id: a.user.id,
+        user: a.user.login,
+        assigned: true,
+        fulfilled: a.fulfilled,
+      }
+    end
+  end
 end
 
 get :assignments do
   protect!
   review = Review.find(params[:review_id])
-  assignments = review.assignments
-  if current_user.admin?
-    User.all.order(login: :asc).map do |u|
-      {
-        user: u.login,
-        assigned: assignments.find_index{|a| a.user_id == u.id} != nil
-      }
-    end.to_json
+  assignments_hash(review.assignments, current_user.admin?).to_json
+end
+
+post :assignments do
+  protect!
+  halt(403, "Access denied") unless current_user.admin?
+  payload = parametrize(params)
+  if payload[:assigned] == true
+    Assignment.create(
+      review_id: payload[:review_id],
+      user_id: payload[:user_id],
+      fulfilled: Feedback.where(review_id: payload[:review_id], user_id: payload[:user_id]).present?
+      )
   else
-    assignments.map do |a|
-      {
-        user: a.user.login,
-        assigned: true
-      }
-    end.to_json
+    Assignment.where(review_id: payload[:review_id], user_id: payload[:user_id]).destroy_all
   end
+  assignments_hash(Assignment.where(review_id: payload[:review_id]), current_user.admin?).to_json
 end
