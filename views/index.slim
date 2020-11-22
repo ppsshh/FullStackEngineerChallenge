@@ -1,0 +1,4 @@
+- if current_user.present?
+  == slim :app
+- else
+  == slim :login_form

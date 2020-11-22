@@ -1,0 +1,98 @@
+div id="app"
+  div.panel
+    div.left-panel
+      div.session
+        = '👤 {{username}}'
+        a @click="logout" Logout
+      div class="new-review" @click="createPR"
+        div.plus-sign +
+        div class="label" Create performance review
+      div.reviews-list
+        div class="review" v-for="(review, idx) in reviews" @click="openReview(idx)"
+          div.username = '{{review.user}}'
+          div.content = '{{review.content}}'
+    div.center-panel
+      template v-if="currentReview"
+        div.conversation
+          div class="review-content"
+            h2
+              = "Performance review #" + "{{currentReview.id}} by"
+              b<> = '{{currentReview.user}}'
+            div class="message" = '{{currentReview.content}}'
+            div.timestamp = '{{currentReview.created_at}}'
+          div class="feedback" v-for="feedback in currentReview.feedbacks"
+            div class="username" = '{{feedback.user}}'
+            div class="message" = '{{feedback.content}}'
+            div class="timestamp" = '{{feedback.created_at}}'
+        div.input
+          textarea v-model="inputText" placeholder="Write something..."
+          input type="button" value="Submit" @click="currentReview.id ? submitFeedback() : submitReview()"
+    div.right-panel
+      template v-if="currentReview"
+        h2 Participants
+        div class="participant" v-for="assignment in currentReview.assignments"
+          input type="checkbox" :checked="assignment.assigned ? true : false"
+          = "{{assignment.user}}"
+
+
+javascript:
+  var app = new Vue({
+    el: '#app',
+    data: {
+      username: '#{{current_user.login}}',
+      isAdmin: #{{current_user.admin? ? true : false}},
+      panel: 'reviews',
+      currentReview: null,
+      inputText: '',
+      reviews: #{{current_user.available_reviews.order(created_at: :desc).map{|r| r.to_hash}.to_json }},
+    },
+    methods: {
+      logout() {
+        fetch('/session', {method: 'DELETE'})
+          .then(response => {
+            if (response.status == 200) location.reload();
+          })
+      },
+      createPR() {
+        this.currentReview = {}
+      },
+      submitReview() {
+        fetch('/review', {
+          method: 'POST',
+          body: JSON.stringify({message: this.inputText})
+        }).then(response => response.json())
+        .then(body => {
+          this.currentReview = body;
+          this.inputText = '';
+        })
+      },
+      submitFeedback() {
+        fetch('/feedback', {
+          method: 'POST',
+          body: JSON.stringify({review_id: this.currentReview.id, message: this.inputText})
+        }).then(response => response.json())
+        .then(body => {
+          this.currentReview.feedbacks.push({
+            content: body.content,
+            user: body.user,
+            created_at: body.created_at});
+          this.inputText = '';
+        })
+      },
+      openReview(idx) {
+        fetch(`/review?review_id=${this.reviews[idx].id}`)
+          .then(response => response.json())
+          .then(body => {
+            this.currentReview = body;
+            this.loadAssignments();
+          })
+      },
+      loadAssignments() {
+        fetch(`/assignments?review_id=${this.currentReview.id}`)
+          .then(response => response.json())
+          .then(body => {
+            this.currentReview.assignments = body;
+          })
+      },
+    }
+  })
